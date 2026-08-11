@@ -1,0 +1,59 @@
+<div class="page">
+
+    <h1>
+        <i class="fa-solid fa-map-location-dot"></i>
+        Mapa serwisu
+    </h1>
+
+    <div class="map-toolbar">
+
+        <input type="text" id="customerFilter" placeholder="🔍 Klient">
+
+        <select id="cityFilter">
+    <option value="">🏙️ Wszystkie miasta</option>
+</select>
+
+        <select id="statusFilter">
+            <option value="">Status</option>
+            <option value="Zaplanowane">Zaplanowane</option>
+            <option value="W trakcie">W trakcie</option>
+            <option value="Awaria">Awaria</option>
+        </select>
+
+        <select id="typeFilter">
+            <option value="">Rodzaj</option>
+            <option value="Awaria">Awaria</option>
+            <option value="Przegląd">Przegląd</option>
+            <option value="Naprawa">Naprawa</option>
+            <option value="Montaż">Montaż</option>
+        </select>
+
+        <button onclick="filterMap()">
+            <i class="fa-solid fa-filter"></i>
+            Filtruj
+        </button>
+
+    </div>
+
+    <div class="map-layout">
+
+        <aside class="left-panel">
+
+            <div class="task-list">
+
+                <h3>
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    Zlecenia
+                </h3>
+
+                <div id="taskList"></div>
+
+            </div>
+
+        </aside>
+
+        <div id="map"></div>
+
+    </div>
+
+</div>

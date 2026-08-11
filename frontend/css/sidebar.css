@@ -1,0 +1,145 @@
+.sidebar {
+    width: 250px;
+    min-width: 250px;
+    height: 100vh;
+
+    background: #111827;
+    color: white;
+
+    display: flex;
+    flex-direction: column;
+
+    transition: width 0.25s ease,
+                min-width 0.25s ease;
+
+    overflow: hidden;
+}
+
+.sidebar-top {
+    display: flex;
+    align-items: center;
+
+    height: 70px;
+    min-height: 70px;
+
+    padding: 0 15px;
+}
+
+.toggle-btn {
+    width: 40px;
+    height: 40px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: transparent;
+    color: white;
+
+    font-size: 22px;
+
+    cursor: pointer;
+}
+
+.toggle-btn:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.logo {
+    margin-left: 12px;
+}
+
+.logo img {
+    max-width: 150px;
+    max-height: 45px;
+    object-fit: contain;
+}
+
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+
+    gap: 6px;
+
+    padding: 15px 10px;
+}
+
+.menu-btn {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 12px 14px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: transparent;
+    color: #d1d5db;
+
+    cursor: pointer;
+
+    text-align: left;
+
+    font-size: 14px;
+
+    transition: 0.2s;
+}
+
+.menu-btn:hover {
+    background: rgba(255,255,255,0.08);
+    color: white;
+}
+
+.menu-btn.active {
+    background: #2563eb;
+    color: white;
+}
+
+.menu-btn .icon {
+    width: 24px;
+
+    display: flex;
+    justify-content: center;
+
+    font-size: 17px;
+}
+
+.menu-btn .text {
+    white-space: nowrap;
+}
+
+
+/* =========================
+   ZWINIĘTY SIDEBAR
+========================= */
+
+.sidebar.collapsed {
+    width: 72px;
+    min-width: 72px;
+}
+
+.sidebar.collapsed .logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-left: 0;
+}
+
+.sidebar.collapsed .logo img {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+}
+
+.sidebar.collapsed .menu-btn {
+    justify-content: center;
+    padding: 12px;
+}
+
+.sidebar.collapsed .menu-btn .text {
+    display: none;
+}

@@ -1,0 +1,33 @@
+name: Build Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Pobierz projekt
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalacja zależności
+        run: npm ci
+
+      - name: Budowanie EXE
+        run: npx electron-builder --win --publish never
+
+      - name: Udostępnij instalator
+        uses: actions/upload-artifact@v4
+        with:
+          name: Technologia-Plus-Service-Manager-Windows
+          path: dist/*.exe

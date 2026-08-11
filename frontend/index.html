@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Technologia Plus</title>
+
+
+    <!-- Leaflet -->
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+
+    <!-- Font Awesome -->
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+
+    <!-- CSS -->
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/map.css">
+    <link rel="stylesheet" href="css/orders.css">
+    <link rel="stylesheet" href="css/tasks.css">
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/topbar.css">
+    <link rel="stylesheet" href="css/settings.css">
+    <link rel="stylesheet" href="css/calendar.css">
+
+</head>
+
+
+<body>
+
+
+<!-- =========================
+     LOGIN
+========================= -->
+
+<div id="loginScreen">
+
+    <div class="login-card">
+
+        <img
+            src="assets/logo.png"
+            class="login-logo"
+            alt="Technologia Plus"
+        >
+
+        <h1>Technologia Plus</h1>
+
+        <p>Service Manager</p>
+
+
+        <form id="loginForm">
+
+            <label for="login">
+                Login
+            </label>
+
+            <input
+                type="text"
+                id="login"
+                placeholder="Login"
+                autocomplete="username"
+            >
+
+
+            <label for="password">
+                Hasło
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Hasło"
+                autocomplete="current-password"
+            >
+
+
+            <div class="remember">
+
+                <input
+                    type="checkbox"
+                    id="remember"
+                >
+
+                <label for="remember">
+                    Zapamiętaj mnie
+                </label>
+
+            </div>
+
+
+            <button type="submit">
+                Zaloguj się
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================
+     APLIKACJA
+========================= -->
+
+<div id="app">
+
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="sidebar-top">
+
+            <button
+                id="toggleSidebar"
+                class="toggle-btn"
+            >
+                ☰
+            </button>
+
+
+            <div class="logo">
+
+                <img
+                    src="assets/logo.png"
+                    alt="Technologia Plus"
+                >
+
+            </div>
+
+        </div>
+
+
+        <nav class="sidebar-menu">
+
+
+            <button
+                class="menu-btn active"
+                data-page="dashboard"
+            >
+
+                <span class="icon">
+                    <i class="fa-solid fa-house"></i>
+                </span>
+
+                <span class="text">
+                    Panel główny
+                </span>
+
+            </button>
+
+
+            <button
+                class="menu-btn"
+                data-page="mapa"
+            >
+
+                <span class="icon">
+                    <i class="fa-solid fa-map"></i>
+                </span>
+
+                <span class="text">
+                    Mapa
+                </span>
+
+            </button>
+
+
+            <button
+                class="menu-btn"
+                data-page="zlecenia"
+            >
+
+                <span class="icon">
+                    <i class="fa-solid fa-list-check"></i>
+                </span>
+
+                <span class="text">
+                    Zlecenia
+                </span>
+
+            </button>
+
+
+            <button
+                class="menu-btn"
+                data-page="kalendarz"
+            >
+
+                <span class="icon">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </span>
+
+                <span class="text">
+                    Kalendarz
+                </span>
+
+            </button>
+
+
+        </nav>
+
+    </aside>
+
+
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <main>
+
+
+        <!-- =========================
+             TOPBAR
+        ========================== -->
+
+        <header class="topbar">
+
+
+            <div class="topbar-left">
+
+                <span class="app-name">
+                    Technologia Plus
+                </span>
+
+                <span class="app-version">
+                    Service Manager
+                </span>
+
+            </div>
+
+
+            <!-- WYSZUKIWARKA -->
+
+            <div class="search-box">
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input
+                    id="globalSearch"
+                    type="text"
+                    placeholder="Szukaj klienta, miasta lub numeru zlecenia..."
+                >
+
+                <div
+                    id="searchResults"
+                    class="search-results"
+                ></div>
+
+            </div>
+
+
+            <!-- =========================
+                 SYNCHRONIZACJA
+            ========================== -->
+
+            <button
+                id="syncTasksButton" 
+                class="sync-button"
+                title="Pobierz najnowsze zlecenia"
+            >
+<span id="lastSync">
+    Brak synchronizacji
+</span>
+                <i class="fa-solid fa-arrows-rotate"></i>
+
+                <span>
+                    Synchronizuj
+                </span>
+
+            </button>
+
+
+            <!-- =========================
+                 UŻYTKOWNIK
+            ========================== -->
+
+            <button
+                id="userButton"
+                class="user-button"
+            >
+                👤 Michał ▼
+            </button>
+
+
+            <div
+                id="userDropdown"
+                class="user-dropdown"
+            >
+
+                <button
+                    onclick="loadPage('ustawienia')"
+                >
+
+                    <i class="fa-solid fa-gear"></i>
+
+                    Ustawienia
+
+                </button>
+
+
+                <button
+                    onclick="logout()"
+                >
+
+                    <i class="fa-solid fa-right-from-bracket"></i>
+
+                    Wyloguj
+
+                </button>
+
+            </div>
+
+
+        </header>
+
+
+        <!-- =========================
+             ZAWARTOŚĆ
+        ========================== -->
+
+        <section id="content"></section>
+
+
+    </main>
+
+</div>
+
+
+
+<!-- =========================
+     JAVASCRIPT
+========================= -->
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+></script>
+
+
+<script src="js/login.js"></script>
+<script src="js/tasks.js"></script>
+<script src="js/map.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/orders.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/calendar.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/mapFilters.js"></script>
+<script src="js/search.js"></script>
+<script src="js/mapFilters.js"></script>
+<script src="js/search.js"></script>
+<script src="js/mapFilters.js"></script>
+<script src="js/search.js"></script>
+<script src="js/router.js"></script>
+
+</body>
+
+</html>

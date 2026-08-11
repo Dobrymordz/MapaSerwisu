@@ -1,0 +1,66 @@
+{
+  "name": "technologia-plus-service-manager",
+  "productName": "Technologia Plus Service Manager",
+  "version": "0.5.0",
+  "description": "Technologia Plus Service Manager",
+  "main": "electron/main.js",
+  "author": "Michał Wawrzynowicz",
+  "license": "MIT",
+  "private": true,
+
+  "scripts": {
+    "start": "node backend/server.js",
+    "desktop": "electron .",
+    "build": "electron-builder --win"
+  },
+
+  "build": {
+    "appId": "pl.technologiaplus.servicemanager",
+    "productName": "Technologia Plus Service Manager",
+    "icon": "build/icon.ico",
+
+    "directories": {
+      "output": "dist"
+    },
+
+    "asar": false,
+
+    "files": [
+      "electron/**/*",
+      "backend/**/*",
+      "frontend/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Technologia Plus Service Manager"
+    }
+  },
+
+  "dependencies": {
+    "axios": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^5.2.1"
+  },
+
+  "devDependencies": {
+    "electron": "^43.3.0",
+    "electron-builder": "^26.15.3"
+  }
+}

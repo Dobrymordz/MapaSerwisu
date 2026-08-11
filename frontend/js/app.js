@@ -1,0 +1,1 @@
+// Logika została przeniesiona do router.js, dashboard.js i map.js.

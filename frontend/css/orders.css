@@ -1,0 +1,236 @@
+/* =========================
+   ZLECENIA
+========================= */
+
+.orders-toolbar {
+
+    display:flex;
+
+    gap:12px;
+
+    margin-bottom:20px;
+
+}
+
+.orders-toolbar input,
+.orders-toolbar select {
+
+    height:46px;
+
+    padding:0 14px;
+
+    border:1px solid #d1d5db;
+
+    border-radius:12px;
+
+    background:white;
+
+    outline:none;
+
+    font-size:14px;
+
+}
+
+.orders-toolbar input {
+
+    flex:1;
+
+}
+
+.orders-toolbar input:focus,
+.orders-toolbar select:focus {
+
+    border-color:#2563eb;
+
+}
+
+.orders-toolbar button {
+
+    height:46px;
+
+    padding:0 20px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:#2563eb;
+
+    color:white;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+}
+
+.orders-toolbar button:hover {
+
+    background:#1d4ed8;
+
+}
+
+
+/* =========================
+   KARTA
+========================= */
+
+.orders-card {
+
+    background:white;
+
+    border-radius:18px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+    overflow:hidden;
+
+}
+
+.orders-header {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:20px;
+
+    border-bottom:1px solid #e5e7eb;
+
+}
+
+.orders-header strong {
+
+    font-size:18px;
+
+}
+
+#ordersCount {
+
+    color:#6b7280;
+
+    font-size:14px;
+
+}
+
+
+/* =========================
+   TABELA
+========================= */
+
+.orders-table-wrapper {
+
+    overflow-x:auto;
+
+}
+
+.task-table {
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+.task-table th {
+
+    text-align:left;
+
+    padding:15px 18px;
+
+    background:#f8fafc;
+
+    color:#6b7280;
+
+    font-size:13px;
+
+    font-weight:700;
+
+}
+
+.task-table td {
+
+    padding:16px 18px;
+
+    border-top:1px solid #f1f5f9;
+
+    font-size:14px;
+
+}
+
+.task-table tbody tr {
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.task-table tbody tr:hover {
+
+    background:#f8fafc;
+
+}
+
+
+/* =========================
+   STATUS
+========================= */
+
+.order-status {
+
+    display:inline-block;
+
+    padding:5px 10px;
+
+    border-radius:999px;
+
+    font-size:12px;
+
+    font-weight:700;
+
+}
+
+.status-planned {
+
+    background:#dcfce7;
+
+    color:#15803d;
+
+}
+
+.status-progress {
+
+    background:#fef3c7;
+
+    color:#b45309;
+
+}
+
+.status-failure {
+
+    background:#fee2e2;
+
+    color:#dc2626;
+
+}
+
+.status-default {
+
+    background:#e5e7eb;
+
+    color:#374151;
+
+}
+
+.empty-orders {
+
+    text-align:center;
+
+    padding:40px !important;
+
+    color:#6b7280;
+
+}

@@ -1,0 +1,308 @@
+cat > frontend/css/map.css <<'EOF'
+/* ===========================
+   MAPA SERWISU
+=========================== */
+
+.page h1 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin-bottom: 20px;
+
+    font-size: 32px;
+    font-weight: 700;
+
+    color: #111827;
+}
+
+.page h1 i {
+    color: #2563eb;
+}
+
+
+/* ===========================
+   TOOLBAR
+=========================== */
+
+.map-toolbar {
+    display: grid;
+
+    grid-template-columns:
+        minmax(160px, 2fr)
+        minmax(160px, 2fr)
+        minmax(120px, 1fr)
+        minmax(120px, 1fr)
+        150px;
+
+    gap: 15px;
+
+    margin-bottom: 20px;
+}
+
+.map-toolbar input,
+.map-toolbar select {
+    height: 46px;
+
+    padding: 0 14px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 12px;
+
+    background: white;
+
+    font-size: 14px;
+
+    outline: none;
+}
+
+.map-toolbar input:focus,
+.map-toolbar select:focus {
+    border-color: #2563eb;
+}
+
+.map-toolbar button {
+    border: none;
+
+    border-radius: 12px;
+
+    background: #2563eb;
+
+    color: white;
+
+    cursor: pointer;
+
+    font-weight: 600;
+
+    transition: .25s;
+}
+
+.map-toolbar button:hover {
+    background: #1d4ed8;
+}
+
+
+/* ===========================
+   UKŁAD MAPY
+=========================== */
+
+.map-layout {
+    display: flex;
+
+    gap: 20px;
+
+    /*
+       Nie używamy calc(100vh - 250px),
+       ponieważ topbar + zawartość mogą mieć
+       różną wysokość w Electronie.
+    */
+    height: calc(100vh - 250px);
+
+    min-height: 500px;
+
+    width: 100%;
+
+    overflow: hidden;
+}
+
+
+/* ===========================
+   LEWY PANEL
+=========================== */
+
+.left-panel {
+    width: 360px;
+
+    min-width: 300px;
+
+    max-width: 360px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    flex-shrink: 0;
+}
+
+
+/* ===========================
+   LISTA ZLECEŃ
+=========================== */
+
+.task-list {
+    flex: 1;
+
+    min-height: 0;
+
+    background: white;
+
+    border-radius: 18px;
+
+    padding: 18px;
+
+    box-shadow:
+        0 8px 20px rgba(0,0,0,.08);
+
+    overflow-y: auto;
+}
+
+.task-list h3 {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-bottom: 18px;
+
+    font-size: 20px;
+
+    color: #111827;
+}
+
+.task {
+    background: white;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 14px;
+
+    padding: 14px;
+
+    margin-bottom: 12px;
+
+    cursor: pointer;
+
+    transition: .25s;
+
+    box-shadow:
+        0 2px 6px rgba(0,0,0,.05);
+}
+
+.task:hover {
+    transform: translateY(-2px);
+
+    border-color: #2563eb;
+
+    box-shadow:
+        0 10px 20px rgba(37,99,235,.12);
+}
+
+.task-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: flex-start;
+}
+
+.task-title {
+    font-size: 17px;
+
+    font-weight: 700;
+
+    color: #111827;
+}
+
+.task-customer {
+    margin-top: 4px;
+
+    font-size: 14px;
+
+    color: #6b7280;
+}
+
+.task-header i {
+    color: #9ca3af;
+
+    font-size: 15px;
+
+    margin-top: 4px;
+}
+
+.task-footer {
+    margin-top: 12px;
+}
+
+.task-status {
+    display: inline-block;
+
+    padding: 5px 12px;
+
+    border-radius: 999px;
+
+    font-size: 12px;
+
+    font-weight: 700;
+}
+
+
+/* ===========================
+   MAPA
+=========================== */
+
+#map {
+    flex: 1;
+
+    width: auto;
+
+    height: 100%;
+
+    min-height: 500px;
+
+    min-width: 0;
+
+    border-radius: 18px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 8px 20px rgba(0,0,0,.08);
+}
+
+
+/* ===========================
+   RESPONSYWNOŚĆ
+=========================== */
+
+/*
+   Nie składamy mapy pionowo przy 1400 px.
+   Electron może mieć okno 1600 px, ale sam
+   obszar contentu jest węższy przez sidebar.
+*/
+
+@media (max-width: 1000px) {
+
+    .map-toolbar {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .map-layout {
+        flex-direction: column;
+
+        height: auto;
+
+        overflow: visible;
+    }
+
+    .left-panel {
+        width: 100%;
+
+        max-width: none;
+
+        min-width: 0;
+
+        height: 300px;
+    }
+
+    #map {
+        width: 100%;
+
+        height: 650px;
+
+        min-height: 650px;
+    }
+
+}
+EOF

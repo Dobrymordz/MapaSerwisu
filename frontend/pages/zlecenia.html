@@ -1,0 +1,72 @@
+<div class="page">
+
+    <h1>
+        <i class="fa-solid fa-clipboard-list"></i>
+        Zlecenia
+    </h1>
+
+    <div class="orders-toolbar">
+
+        <input
+            type="text"
+            id="searchTask"
+            placeholder="🔍 Szukaj klienta, miasta lub ID">
+
+        <select id="orderStatusFilter">
+
+            <option value="">Wszystkie statusy</option>
+            <option value="Zaplanowane">Zaplanowane</option>
+            <option value="W trakcie">W trakcie</option>
+            <option value="Awaria">Awaria</option>
+
+        </select>
+
+        <button id="newTask">
+            <i class="fa-solid fa-plus"></i>
+            Nowe zlecenie
+        </button>
+
+    </div>
+
+    <div class="orders-card">
+
+        <div class="orders-header">
+
+            <div>
+                <strong>Lista zleceń</strong>
+            </div>
+
+            <div id="ordersCount">
+                0 zleceń
+            </div>
+
+        </div>
+
+        <div class="orders-table-wrapper">
+
+            <table class="task-table">
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Klient</th>
+                        <th>Miasto</th>
+                        <th>Serwisant</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="taskTable">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>

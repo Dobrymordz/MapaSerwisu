@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "title": "JYSK Kępno",
+    "customer": "JYSK",
+    "lat": 51.2783,
+    "lng": 17.9893,
+    "status": "Zaplanowane"
+  },
+  {
+    "id": 2,
+    "title": "Lidl Ostrów Wielkopolski",
+    "customer": "Lidl",
+    "lat": 51.6552,
+    "lng": 17.8069,
+    "status": "Awaria"
+  },
+  {
+    "id": 3,
+    "title": "ABC Wrocław",
+    "customer": "ABC Sp. z o.o.",
+    "lat": 51.1079,
+    "lng": 17.0385,
+    "status": "W trakcie"
+  }
+]

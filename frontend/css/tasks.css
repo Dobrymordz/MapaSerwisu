@@ -1,0 +1,58 @@
+.toolbar{
+
+    display:flex;
+    justify-content:space-between;
+    margin:20px 0;
+
+}
+
+.toolbar input{
+
+    width:350px;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ddd;
+
+}
+
+.toolbar button{
+
+    border:none;
+    padding:12px 20px;
+    border-radius:10px;
+    background:#2563eb;
+    color:white;
+    cursor:pointer;
+
+}
+
+.task-table{
+
+    width:100%;
+    background:white;
+    border-radius:15px;
+    border-collapse:collapse;
+    overflow:hidden;
+
+}
+
+.task-table th{
+
+    background:#1f2937;
+    color:white;
+    padding:15px;
+
+}
+
+.task-table td{
+
+    padding:15px;
+    border-bottom:1px solid #eee;
+
+}
+
+.task-table tr:hover{
+
+    background:#f8fafc;
+
+}

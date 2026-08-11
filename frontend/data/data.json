@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "title": "JYSK Kępno",
+    "customer": "JYSK",
+    "city": "Kępno",
+    "address": "ul. Poznańska 12",
+    "lat": 51.2783,
+    "lng": 17.9893,
+    "status": "Zaplanowane",
+    "technician": "Hubert",
+    "date": "2026-08-03",
+    "time": "09:00",
+    "priority": "Normal"
+  },
+  {
+    "id": 2,
+    "title": "Lidl Ostrów Wielkopolski",
+    "customer": "Lidl",
+    "city": "Ostrów Wielkopolski",
+    "address": "ul. Kaliska 45",
+    "lat": 51.6552,
+    "lng": 17.8069,
+    "status": "Awaria",
+    "technician": "Adam",
+    "date": "2026-08-03",
+    "time": "11:00",
+    "priority": "Wysoki"
+  },
+  {
+    "id": 3,
+    "title": "ABC Wrocław",
+    "customer": "ABC Sp. z o.o.",
+    "city": "Wrocław",
+    "address": "ul. Legnicka 50",
+    "lat": 51.1079,
+    "lng": 17.0385,
+    "status": "W trakcie",
+    "technician": "Patryk",
+    "date": "2026-08-03",
+    "time": "13:00",
+    "priority": "Normal"
+  }
+]
