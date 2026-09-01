@@ -79,100 +79,60 @@ async function getTasks(forceRefresh = false) {
 
 function drawTasks(tasks) {
 
-    if (!Array.isArray(tasks)) {
-        tasks = [];
-    }
+    const taskList = document.getElementById("taskList");
 
+    // =====================================
+    // FILTRUJEMY ZAMKNIĘTE
+    // =====================================
 
-    // ===============================
-    // STATYSTYKI
-    // ===============================
+    const visibleTasks = (Array.isArray(tasks) ? tasks : []).filter(task => {
 
-    const planned =
-        tasks.filter(
-            t => t.status === "Zaplanowane"
-        ).length;
+        const status =
+            String(task.status || "")
+                .trim()
+                .toLowerCase();
 
-    const progress =
-        tasks.filter(
-            t => t.status === "W trakcie"
-        ).length;
+        const statusKey =
+            String(task.statusKey || "")
+                .trim()
+                .toUpperCase();
 
-    const failure =
-        tasks.filter(
-            t => t.status === "Awaria"
-        ).length;
-
-
-    const stats =
-        document.getElementById("stats");
-
-
-    if (stats) {
-
-        stats.innerHTML = `
-            📋 Wszystkie: <b>${tasks.length}</b><br>
-            🟢 Zaplanowane: <b>${planned}</b><br>
-            🟠 W trakcie: <b>${progress}</b><br>
-            🔴 Awarie: <b>${failure}</b>
-        `;
-
-    }
-
-
-    // ===============================
-    // LISTA ZLECEŃ
-    // ===============================
-
-    const taskList =
-        document.getElementById("taskList");
-
-
-    if (taskList) {
-
-        taskList.innerHTML = "";
-
-    }
-
-
-    // ===============================
-    // USUWANIE STARYCH MARKERÓW
-    // ===============================
-
-    markers.forEach(marker => {
-
-        if (map) {
-            map.removeLayer(marker);
-        }
-
+        return status !== "zamknięte" && statusKey !== "CLOSED";
     });
 
-    markers.length = 0;
 
+    // =====================================
+    // LISTA ZLECEŃ
+    // =====================================
 
-    const bounds = [];
-
-
-    // ===============================
-    // ZLECENIA
-    // ===============================
-
-    tasks.forEach(task => {
-    // Pomijamy całkowicie zamknięte zlecenia
-    if (
-      String(task.status || "").trim().toLowerCase() === "zamknięte" ||
-      String(task.statusKey || "").trim().toUpperCase() === "CLOSED"
-    ) {
-      return;
+    if (taskList) {
+        taskList.innerHTML = "";
     }
 
 
-        // -------------------------------
+    // =====================================
+    // ZBIERAMY ID AKTUALNYCH ZLECEŃ
+    // =====================================
+
+    const currentIds = new Set();
+
+
+    visibleTasks.forEach(task => {
+
+        const taskId = String(
+            task.firmaoTaskId ||
+            task.firmaoId ||
+            task.id
+        );
+
+        currentIds.add(taskId);
+
+
+        // =====================================
         // KOLOR STATUSU
-        // -------------------------------
+        // =====================================
 
         let statusColor = "#6b7280";
-
 
         switch (task.status) {
 
@@ -191,9 +151,9 @@ function drawTasks(tasks) {
         }
 
 
-        // -------------------------------
+        // =====================================
         // KARTA ZLECENIA
-        // -------------------------------
+        // =====================================
 
         if (taskList) {
 
@@ -202,10 +162,8 @@ function drawTasks(tasks) {
 
             card.className = "task";
 
-
             card.innerHTML = `
                 <div>
-
                     <div class="task-title">
                         ${task.title || "Zlecenie"}
                     </div>
@@ -213,7 +171,6 @@ function drawTasks(tasks) {
                     <div class="task-customer">
                         ${task.customer || ""}
                     </div>
-
                 </div>
 
                 <i class="fa-solid fa-chevron-right"></i>
@@ -229,183 +186,192 @@ function drawTasks(tasks) {
                 </span>
             `;
 
-
             taskList.appendChild(card);
 
 
-            card.addEventListener(
-                "click",
-                () => {
+            // =====================================
+            // KLIKNIĘCIE ZLECENIA
+            // =====================================
 
-                    showDetails(task);
-
-
-                    if (map) {
-
-                        map.flyTo(
-                            [
-                                Number(task.lat),
-                                Number(task.lng)
-                            ],
-                            14,
-                            {
-                                duration: 1
-                            }
-                        );
-
-                    }
-
-                }
-            );
-
-        }
-
-
-        // -------------------------------
-        // SPRAWDZENIE WSPÓŁRZĘDNYCH
-        // -------------------------------
-
-        if (
-            task.lat == null ||
-            task.lng == null
-        ) {
-
-            return;
-
-        }
-
-
-        if (!map) {
-
-            console.warn(
-                "Mapa nie istnieje podczas rysowania zlecenia."
-            );
-
-            return;
-
-        }
-
-
-        const lat =
-            Number(task.lat);
-
-        const lng =
-            Number(task.lng);
-
-
-        if (
-            Number.isNaN(lat) ||
-            Number.isNaN(lng)
-        ) {
-
-            return;
-
-        }
-
-
-        // -------------------------------
-        // MARKER
-        // -------------------------------
-
-        const marker =
-            L.marker(
-                [lat, lng],
-                {
-                    icon:
-                        icons[task.status] ||
-                        icons["Zaplanowane"]
-                }
-            ).addTo(map);
-
-
-        bounds.push([lat, lng]);
-
-        markers.push(marker);
-
-
-        // -------------------------------
-        // POPUP
-        // -------------------------------
-
-        const firmaoId =
-    task.firmaoTaskId ||
-    task.firmaoId ||
-    task.id;
-
-let firmaoButton = "";
-
-if (firmaoId) {
-
-    firmaoButton = `
-        <br>
-        <button
-            onclick="
-                window.open(
-                    'https://system.firmao.pl/technologiaplusspzoo#view=task&id=${firmaoId}',
-                    '_blank'
-                )
-            "
-            style="
-                margin-top:10px;
-                width:100%;
-                padding:8px 12px;
-                border:none;
-                border-radius:8px;
-                background:#0E6BA8;
-                color:white;
-                cursor:pointer;
-                font-weight:600;
-            "
-        >
-            📋 Otwórz zlecenie w Firmao
-        </button>
-    `;
-
-}
-
-marker.bindPopup(`
-    <b>${task.title || "Zlecenie"}</b><br>
-    ${task.customer || ""}<br>
-    ${task.city || ""}<br>
-    <b>Status:</b> ${task.status || ""}
-    ${firmaoButton}
-`);
-
-
-        // -------------------------------
-        // KLIK MARKERA
-        // -------------------------------
-
-        marker.on(
-            "click",
-            () => {
+            card.addEventListener("click", () => {
 
                 showDetails(task);
 
-            }
-        );
+                const lat = Number(task.lat);
+                const lng = Number(task.lng);
 
+                if (
+                    map &&
+                    Number.isFinite(lat) &&
+                    Number.isFinite(lng)
+                ) {
+
+                    map.stop();
+
+                    map.setView(
+                        [lat, lng],
+                        14,
+                        {
+                            animate: false
+                        }
+                    );
+
+                    setTimeout(() => {
+
+                        if (map) {
+                            map.invalidateSize({
+                                pan: false
+                            });
+                        }
+
+                    }, 50);
+                }
+
+            });
+
+        }
+
+
+        // =====================================
+        // WSPÓŁRZĘDNE
+        // =====================================
+
+        const lat = Number(task.lat);
+        const lng = Number(task.lng);
+
+        if (
+            !Number.isFinite(lat) ||
+            !Number.isFinite(lng) ||
+            !map
+        ) {
+            return;
+        }
+
+
+        // =====================================
+        // ISTNIEJĄCY MARKER
+        // =====================================
+
+        let marker = markers.get(taskId);
+
+        if (marker) {
+
+            marker.setLatLng([lat, lng]);
+
+            const icon =
+                icons[task.status] ||
+                icons["Zaplanowane"];
+
+            if (icon) {
+                marker.setIcon(icon);
+            }
+
+        }
+
+
+        // =====================================
+        // NOWY MARKER
+        // =====================================
+
+        if (!marker) {
+
+            marker =
+                L.marker(
+                    [lat, lng],
+                    {
+                        icon:
+                            icons[task.status] ||
+                            icons["Zaplanowane"]
+                    }
+                ).addTo(map);
+
+
+            // =====================================
+            // KLIK MARKERA
+            // =====================================
+
+            marker.on("click", () => {
+                showDetails(task);
+            });
+
+
+            markers.set(taskId, marker);
+
+        }
+
+
+        // =====================================
+        // POPUP
+        // =====================================
+
+        const firmaoId =
+            task.firmaoTaskId ||
+            task.firmaoId ||
+            task.id;
+
+        let firmaoButton = "";
+
+        if (firmaoId) {
+
+            firmaoButton = `
+                <br>
+                <button
+                    onclick="
+                        window.open(
+                            'https://system.firmao.pl/technologiaplusspzoo#view=task&id=${firmaoId}',
+                            '_blank'
+                        )
+                    "
+                    style="
+                        margin-top:10px;
+                        width:100%;
+                        padding:8px 12px;
+                        border:none;
+                        border-radius:8px;
+                        background:#0E6BA8;
+                        color:white;
+                        cursor:pointer;
+                        font-weight:600;
+                    "
+                >
+                    📋 Otwórz zlecenie w Firmao
+                </button>
+            `;
+
+        }
+
+
+        marker.bindPopup(`
+            <b>${task.title || "Zlecenie"}</b><br>
+            ${task.customer || ""}<br>
+            ${task.city || ""}<br>
+            <b>Status:</b> ${task.status || ""}
+            ${firmaoButton}
+        `);
 
     });
 
 
-    // ===============================
-    // DOPASOWANIE MAPY
-    // ===============================
+    // =====================================
+    // USUWAMY MARKERY, KTÓRYCH JUŻ NIE MA
+    // =====================================
 
-    if (
-        map &&
-        bounds.length > 0
-    ) {
+    for (const [id, marker] of markers.entries()) {
 
-        map.fitBounds(
-            bounds,
-            {
-                padding: [50, 50]
+        if (!currentIds.has(id)) {
+
+            if (map) {
+                map.removeLayer(marker);
             }
-        );
 
+            markers.delete(id);
+        }
     }
+
+
+    // =====================================
+    // NIE ROBIMY FITBOUNDS PRZY KAŻDYM SYNCU
+    // =====================================
 
 }
 
