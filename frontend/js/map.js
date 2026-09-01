@@ -89,47 +89,36 @@ function initMap() {
 
 function showTaskOnMap(task) {
 
+    if (!task) return;
+
+    const lat = Number(task.lat);
+    const lng = Number(task.lng);
+
     if (
-        !task ||
-        task.lat == null ||
-        task.lng == null
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
     ) {
         console.warn(
-            "Zlecenie nie ma współrzędnych:",
+            "Zlecenie nie ma prawidłowych współrzędnych:",
             task
         );
-
         return;
     }
-
-
-    // Jeżeli mapa jeszcze nie istnieje,
-    // utwórz ją.
 
     if (!map) {
         initMap();
     }
 
+    if (!map) return;
 
-    setTimeout(() => {
+    map.stop();
 
-        if (!map) {
-            return;
+    map.setView(
+        [lat, lng],
+        15,
+        {
+            animate: false
         }
-
-
-        map.invalidateSize();
-
-
-        map.setView(
-            [
-                Number(task.lat),
-                Number(task.lng)
-            ],
-            15
-        );
-
-
-    }, 400);
+    );
 
 }

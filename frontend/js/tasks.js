@@ -215,16 +215,6 @@ function drawTasks(tasks) {
                             animate: false
                         }
                     );
-
-                    setTimeout(() => {
-
-                        if (map) {
-                            map.invalidateSize({
-                                pan: false
-                            });
-                        }
-
-                    }, 50);
                 }
 
             });
