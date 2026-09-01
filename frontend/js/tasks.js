@@ -1,4 +1,4 @@
-const markers = [];
+const markers = new Map();
 
 const icons = {
 
