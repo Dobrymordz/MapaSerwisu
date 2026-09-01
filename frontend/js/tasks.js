@@ -158,6 +158,13 @@ function drawTasks(tasks) {
     // ===============================
 
     tasks.forEach(task => {
+    // Pomijamy całkowicie zamknięte zlecenia
+    if (
+      String(task.status || "").trim().toLowerCase() === "zamknięte" ||
+      String(task.statusKey || "").trim().toUpperCase() === "CLOSED"
+    ) {
+      return;
+    }
 
 
         // -------------------------------
@@ -320,12 +327,49 @@ function drawTasks(tasks) {
         // POPUP
         // -------------------------------
 
-        marker.bindPopup(`
-            <b>${task.title || "Zlecenie"}</b><br>
-            ${task.customer || ""}<br>
-            ${task.city || ""}<br>
-            <b>Status:</b> ${task.status || ""}
-        `);
+        const firmaoId =
+    task.firmaoTaskId ||
+    task.firmaoId ||
+    task.id;
+
+let firmaoButton = "";
+
+if (firmaoId) {
+
+    firmaoButton = `
+        <br>
+        <button
+            onclick="
+                window.open(
+                    'https://system.firmao.pl/technologiaplusspzoo#view=task&id=${firmaoId}',
+                    '_blank'
+                )
+            "
+            style="
+                margin-top:10px;
+                width:100%;
+                padding:8px 12px;
+                border:none;
+                border-radius:8px;
+                background:#0E6BA8;
+                color:white;
+                cursor:pointer;
+                font-weight:600;
+            "
+        >
+            📋 Otwórz zlecenie w Firmao
+        </button>
+    `;
+
+}
+
+marker.bindPopup(`
+    <b>${task.title || "Zlecenie"}</b><br>
+    ${task.customer || ""}<br>
+    ${task.city || ""}<br>
+    <b>Status:</b> ${task.status || ""}
+    ${firmaoButton}
+`);
 
 
         // -------------------------------
