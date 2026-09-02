@@ -220,3 +220,35 @@
 .show-on-map:hover {
     background: #1d4ed8;
 }
+
+/* === POPRAWKA PRZEWIJANIA ZLECEŃ === */
+
+/* Lista zleceń ma własny pasek przewijania */
+#taskList {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    max-height: calc(100vh - 260px) !important;
+    min-height: 0 !important;
+    scrollbar-width: auto;
+}
+
+/* Chrome / Edge */
+#taskList::-webkit-scrollbar {
+    width: 10px;
+}
+
+#taskList::-webkit-scrollbar-thumb {
+    background: #999;
+    border-radius: 8px;
+}
+
+#taskList::-webkit-scrollbar-track {
+    background: #eee;
+}
+
+/* Mapa jest sterowana przez map.css */
+
+/* Nie pozwalamy kartom zleceń rozpychać całej strony */
+#taskList > * {
+    flex-shrink: 0;
+}
