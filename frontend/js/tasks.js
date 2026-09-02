@@ -1,42 +1,55 @@
 const markers = new Map();
 
-const icons = {
+function createStatusIcon(status) {
 
-    "Zaplanowane": new L.Icon({
-        iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-    }),
+    const colors = {
+        "Otwarte": "#22c55e",
+        "Aktualnie wykonywane": "#3b82f6",
+        "Oczekiwanie na części": "#f97316",
+        "Spauzowane": "#8b5cf6",
+        "Wystaw fakturę": "#eab308",
+        "Wykonaj ofertę": "#ef4444",
+        "Zamknięte": "#6b7280"
+    };
 
-    "W trakcie": new L.Icon({
-        iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-    }),
+    const color =
+        colors[String(status || "").trim()] ||
+        "#6b7280";
 
-    "Awaria": new L.Icon({
-        iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-    })
+    return L.divIcon({
+        className: "custom-status-marker",
+        html: `
+            <div style="
+                width: 28px;
+                height: 28px;
+                background: white;
+                border: 4px solid ${color};
+                border-radius: 50% 50% 50% 0;
+                transform: rotate(-45deg);
+                box-shadow: 0 2px 8px rgba(0,0,0,.35);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            ">
+                <div style="
+                    width: 10px;
+                    height: 10px;
+                    background: ${color};
+                    border-radius: 50%;
+                "></div>
+            </div>
+        `,
+        iconSize: [36, 36],
+        iconAnchor: [18, 36],
+        popupAnchor: [0, -36]
+    });
+}
 
-};
+function getStatusIcon(status) {
+    return createStatusIcon(status);
+}
 
-
-// =====================================
-// POBIERANIE ZLECEŃ
-// =====================================
-
-async function getTasks(forceRefresh = false) {
+function getTasks(forceRefresh = false) {
 
     try {
 
