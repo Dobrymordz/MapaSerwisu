@@ -1,0 +1,4 @@
+{
+  "name": "MapaSerwisu",
+  "postAttachCommand": "/workspaces/MapaSerwisu/.devcontainer/start-backend.sh"
+}
