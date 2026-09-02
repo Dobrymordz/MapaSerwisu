@@ -1,56 +1,45 @@
 let map = null;
 
 function initMap() {
-
-    const mapElement = document.getElementById("map");
+    const mapElement =
+        document.getElementById("map");
 
     if (!mapElement) {
         return;
     }
 
-
-    // Jeżeli istnieje stara mapa,
-    // ale należy do starego elementu HTML,
-    // usuwamy ją i tworzymy nową.
     if (map) {
-
         try {
-
-            const oldContainer = map.getContainer();
+            const oldContainer =
+                map.getContainer();
 
             if (oldContainer !== mapElement) {
-
                 map.remove();
-
                 map = null;
-
             } else {
-
                 setTimeout(() => {
+                    if (map) {
+                        map.invalidateSize();
+                    }
+                }, 100);
 
-                    map.invalidateSize();
-
-                }, 300);
+                if (
+                    typeof initMapViewportLoading === "function"
+                ) {
+                    initMapViewportLoading();
+                }
 
                 return;
-
             }
-
         } catch (error) {
-
             console.warn(
                 "Usuwanie starej mapy:",
                 error
             );
 
             map = null;
-
         }
-
     }
-
-
-    // Tworzymy nową mapę
 
     map = L.map("map", {
         zoomControl: true
@@ -58,7 +47,6 @@ function initMap() {
         [51.1079, 17.0385],
         8
     );
-
 
     L.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -69,37 +57,37 @@ function initMap() {
         }
     ).addTo(map);
 
-
-    // Bardzo ważne przy dynamicznym przełączaniu stron
-
+    /*
+     * Leaflet musi najpierw dostać prawidłowy
+     * rozmiar kontenera.
+     */
     setTimeout(() => {
-
-        if (map) {
-            map.invalidateSize();
+        if (!map) {
+            return;
         }
 
-    }, 300);
+        map.invalidateSize();
 
+        /*
+         * Dopiero teraz pobieramy zlecenia
+         * z aktualnego obszaru.
+         */
+        if (
+            typeof initMapViewportLoading === "function"
+        ) {
+            initMapViewportLoading();
+        }
+    }, 300);
 }
 
-
-// =====================================
-// POKAŻ KONKRETNE ZLECENIE NA MAPIE
-// =====================================
-
 function showTaskOnMap(task) {
-
-    if (!task) return;
-
-    const lat = Number(task.lat);
-    const lng = Number(task.lng);
-
     if (
-        !Number.isFinite(lat) ||
-        !Number.isFinite(lng)
+        !task ||
+        task.lat == null ||
+        task.lng == null
     ) {
         console.warn(
-            "Zlecenie nie ma prawidłowych współrzędnych:",
+            "Zlecenie nie ma współrzędnych:",
             task
         );
         return;
@@ -109,16 +97,29 @@ function showTaskOnMap(task) {
         initMap();
     }
 
-    if (!map) return;
-
-    map.stop();
-
-    map.setView(
-        [lat, lng],
-        15,
-        {
-            animate: false
+    setTimeout(() => {
+        if (!map) {
+            return;
         }
-    );
 
+        const lat = Number(task.lat);
+        const lng = Number(task.lng);
+
+        if (
+            !Number.isFinite(lat) ||
+            !Number.isFinite(lng)
+        ) {
+            return;
+        }
+
+        map.invalidateSize();
+
+        map.setView(
+            [lat, lng],
+            Math.max(map.getZoom(), 14),
+            {
+                animate: false
+            }
+        );
+    }, 300);
 }

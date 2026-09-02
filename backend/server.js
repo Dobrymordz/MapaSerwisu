@@ -46,10 +46,51 @@ let firmaoLastSync = null;
 let firmaoSyncRunning = false;
 
 // ===============================
-// GEOKODOWANIE ADRESÓW
+// GEOKODOWANIE
 // ===============================
 
+const GEOCODE_CACHE_FILE = path.join(__dirname, "geocode-cache.json");
 const geocodeCache = new Map();
+
+try {
+    if (fs.existsSync(GEOCODE_CACHE_FILE)) {
+        const saved = JSON.parse(
+            fs.readFileSync(GEOCODE_CACHE_FILE, "utf8")
+        );
+
+        for (const [key, value] of Object.entries(saved)) {
+            geocodeCache.set(key, value);
+        }
+
+        console.log(
+            `[Geocoder] Wczytano ${geocodeCache.size} zapisanych wyników`
+        );
+    }
+} catch (error) {
+    console.warn(
+        "[Geocoder] Nie udało się wczytać cache:",
+        error.message
+    );
+}
+
+function saveGeocodeCache() {
+    try {
+        fs.writeFileSync(
+            GEOCODE_CACHE_FILE,
+            JSON.stringify(Object.fromEntries(geocodeCache), null, 2),
+            "utf8"
+        );
+    } catch (error) {
+        console.warn(
+            "[Geocoder] Nie udało się zapisać cache:",
+            error.message
+        );
+    }
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 async function geocodeAddress(address) {
 
@@ -57,23 +98,33 @@ async function geocodeAddress(address) {
         return null;
     }
 
-    if (geocodeCache.has(address)) {
-        return geocodeCache.get(address);
+    const query = String(address).trim();
+
+    if (!query) {
+        return null;
+    }
+
+    if (geocodeCache.has(query)) {
+        return geocodeCache.get(query);
     }
 
     try {
+
+        // Nominatim: maksymalnie jedno zapytanie na sekundę.
+        await sleep(1100);
 
         const response = await axios.get(
             "https://nominatim.openstreetmap.org/search",
             {
                 params: {
-                    q: address,
+                    q: query,
                     format: "json",
                     limit: 1,
                     countrycodes: "pl"
                 },
                 headers: {
-                    "User-Agent": "MapaSerwisu/1.0"
+                    "User-Agent":
+                        "MapaSerwisu/1.0 (Technologia Plus Service Manager)"
                 },
                 timeout: 15000
             }
@@ -81,11 +132,12 @@ async function geocodeAddress(address) {
 
         if (!response.data || !response.data.length) {
 
-            console.warn(
-                `[Geocoder] Nie znaleziono: ${address}`
+            console.log(
+                `[Geocoder] Brak wyniku: ${query}`
             );
 
-            geocodeCache.set(address, null);
+            geocodeCache.set(query, null);
+            saveGeocodeCache();
 
             return null;
         }
@@ -95,10 +147,11 @@ async function geocodeAddress(address) {
             lng: Number(response.data[0].lon)
         };
 
-        geocodeCache.set(address, result);
+        geocodeCache.set(query, result);
+        saveGeocodeCache();
 
         console.log(
-            `[Geocoder] ${address} -> ${result.lat}, ${result.lng}`
+            `[Geocoder] ${query} -> ${result.lat}, ${result.lng}`
         );
 
         return result;
@@ -106,15 +159,84 @@ async function geocodeAddress(address) {
     } catch (error) {
 
         console.error(
-            `[Geocoder] Błąd dla "${address}":`,
+            `[Geocoder] Błąd dla "${query}":`,
             error.message
         );
 
         return null;
     }
-
 }
 
+async function geocodeTask(task) {
+
+    if (!task) {
+        return null;
+    }
+
+    const title =
+        task.name ||
+        task.title ||
+        "";
+
+    const project =
+        task.project?.name ||
+        "";
+
+    const custom3 =
+        task.customFields?.custom3 ||
+        "";
+
+    const address =
+        typeof task.address === "string"
+            ? task.address.trim()
+            : "";
+
+    // Najpierw próbujemy najbardziej dokładnych danych.
+    const queries = [
+        address,
+        title,
+        project,
+        custom3
+    ]
+        .map(value => String(value || "").trim())
+        .filter(Boolean);
+
+    // Usuwamy duplikaty.
+    const uniqueQueries = [...new Set(queries)];
+
+    for (const query of uniqueQueries) {
+
+        const coordinates = await geocodeAddress(query);
+
+        if (coordinates) {
+            return coordinates;
+        }
+    }
+
+    // Ostateczny fallback: miasto rozpoznane z danych zlecenia.
+    const city =
+        extractCity(title) ||
+        extractCity(project) ||
+        extractCity(custom3) ||
+        extractCity(address) ||
+        "";
+
+    if (city && CITY_COORDS[city]) {
+
+        const coordinates = {
+            lat: CITY_COORDS[city][0],
+            lng: CITY_COORDS[city][1]
+        };
+
+        console.log(
+            `[Geocoder] Fallback miasto: ${city} -> ${coordinates.lat}, ${coordinates.lng}`
+        );
+
+        return coordinates;
+    }
+
+    return null;
+}
 
 async function syncFirmaoTasks() {
 
@@ -164,31 +286,45 @@ async function syncFirmaoTasks() {
 
         firmaoTasksCache = allTasks;
 
-        // Pobieramy współrzędne dla adresów
+        console.log(
+            `[Geocoder] Rozpoczynam sprawdzanie ${firmaoTasksCache.length} zleceń...`
+        );
+
+        let geocoded = 0;
+        let skipped = 0;
+
         for (const task of firmaoTasksCache) {
 
+            // Jeżeli mamy już współrzędne z Firmao, nie pytamy ponownie.
             if (
-                task.address &&
-                !task.lat &&
-                !task.lng
+                task.lat != null &&
+                task.lng != null
             ) {
-
-                const coordinates =
-                    await geocodeAddress(task.address);
-
-                if (coordinates) {
-                    task.lat = coordinates.lat;
-                    task.lng = coordinates.lng;
-                }
-
+                skipped++;
+                continue;
             }
 
+            const coordinates = await geocodeTask(task);
+
+            if (coordinates) {
+
+                task.lat = coordinates.lat;
+                task.lng = coordinates.lng;
+
+                geocoded++;
+            }
         }
+
+        saveGeocodeCache();
 
         firmaoLastSync = new Date();
 
         console.log(
             `[Firmao] Synchronizacja OK: ${firmaoTasksCache.length} zleceń`
+        );
+
+        console.log(
+            `[Geocoder] Nowe współrzędne: ${geocoded}, pominięte: ${skipped}, cache: ${geocodeCache.size}`
         );
 
     } catch (error) {
@@ -209,10 +345,10 @@ async function syncFirmaoTasks() {
 // Pierwsza synchronizacja po uruchomieniu
 syncFirmaoTasks();
 
-// Kolejne synchronizacje co 60 sekund
+// Kolejne synchronizacje co 5 minut
 const FIRMAO_SYNC_INTERVAL = setInterval(
     syncFirmaoTasks,
-    60 * 1000
+    5 * 60 * 1000
 );
 
 // Endpoint do sprawdzenia synchronizacji
@@ -221,7 +357,7 @@ app.get("/firmao-sync-status", (req, res) => {
     res.json({
         tasks: firmaoTasksCache.length,
         lastSync: firmaoLastSync,
-        syncInterval: 60000
+        syncInterval: 5 * 60 * 1000
     });
 
 });
@@ -320,6 +456,172 @@ function extractCity(text) {
   return "";
 }
 
+
+// ===============================
+// ZLECENIA DLA AKTUALNEGO OBSZARU MAPY
+// ===============================
+
+app.get("/map-tasks", (req, res) => {
+    try {
+        const minLat = Number(req.query.minLat);
+        const maxLat = Number(req.query.maxLat);
+        const minLng = Number(req.query.minLng);
+        const maxLng = Number(req.query.maxLng);
+        const requestedStatusKey = String(
+            req.query.statusKey || "__ACTIVE__"
+        ).trim();
+
+        if (
+            !Number.isFinite(minLat) ||
+            !Number.isFinite(maxLat) ||
+            !Number.isFinite(minLng) ||
+            !Number.isFinite(maxLng)
+        ) {
+            return res.status(400).json({
+                error: "Nieprawidłowe granice mapy"
+            });
+        }
+
+        const tasks = firmaoTasksCache
+            .map(task => {
+                const address =
+                    typeof task.address === "string"
+                        ? task.address
+                        : "";
+
+                const customer =
+                    task.customer?.label ||
+                    task.customer?.name ||
+                    "";
+
+                const responsibleUsers =
+                    Array.isArray(task.responsibleUsers)
+                        ? task.responsibleUsers
+                        : [];
+
+                const technician =
+                    responsibleUsers
+                        .map(user =>
+                            user.label ||
+                            user.name ||
+                            user.email ||
+                            ""
+                        )
+                        .filter(Boolean)
+                        .join(", ");
+
+                const statusKey =
+                    task.status?.key ||
+                    "";
+
+                const statusLabel =
+                    task.status?.label ||
+                    statusKey ||
+                    "Brak statusu";
+
+                const plannedStart =
+                    task.plannedStartDate ||
+                    "";
+
+                const title =
+                    task.name ||
+                    task.title ||
+                    `Zlecenie ${task.id}`;
+
+                const project =
+                    task.project?.name ||
+                    "";
+
+                const custom3 =
+                    task.customFields?.custom3 ||
+                    "";
+
+                const city =
+                    extractCity(title) ||
+                    extractCity(project) ||
+                    extractCity(custom3) ||
+                    extractCity(address) ||
+                    "";
+
+                const coords =
+                    city && CITY_COORDS[city]
+                        ? CITY_COORDS[city]
+                        : null;
+
+                return {
+                    id: task.id,
+                    firmaoId: task.id,
+                    title,
+                    project,
+                    customer,
+                    city,
+                    address,
+                    lat: coords ? coords[0] : null,
+                    lng: coords ? coords[1] : null,
+                    status: statusLabel,
+                    statusKey,
+                    technician,
+                    date: plannedStart
+                        ? String(plannedStart).substring(0, 10)
+                        : "",
+                    time: plannedStart
+                        ? String(plannedStart).substring(11, 16)
+                        : "",
+                    priority:
+                        task.priority?.label ||
+                        task.priority ||
+                        "",
+                    firmaoUrl:
+                        `https://system.firmao.pl/technologiaplusspzoo#view=task&id=${task.id}`
+                };
+            })
+              .filter(task => {
+                  // Zamknięte nigdy nie trafiają na mapę.
+                  if (
+                      String(task.statusKey || "")
+                          .trim()
+                          .toUpperCase() === "CLOSED"
+                  ) {
+                      return false;
+                  }
+
+                  // Filtr statusu.
+                  if (
+                      requestedStatusKey &&
+                      requestedStatusKey !== "__ACTIVE__" &&
+                      task.statusKey !== requestedStatusKey
+                  ) {
+                      return false;
+                  }
+
+                  // Tylko zlecenia z koordynatami.
+                  if (
+                      task.lat == null ||
+                      task.lng == null
+                  ) {
+                      return false;
+                  }
+
+                  // Tylko aktualny obszar mapy.
+                  return (
+                      task.lat >= minLat &&
+                      task.lat <= maxLat &&
+                      task.lng >= minLng &&
+                      task.lng <= maxLng
+                  );
+              });
+
+        res.json(tasks);
+
+    } catch (err) {
+        console.error("Błąd /map-tasks:", err);
+
+        res.status(500).json({
+            error: "Nie udało się pobrać zleceń dla mapy"
+        });
+    }
+});
+
 app.get("/tasks", (req, res) => {
 
     try {
@@ -360,30 +662,52 @@ app.get("/tasks", (req, res) => {
                 task.plannedStartDate ||
                 "";
 
+            const title =
+                task.name ||
+                task.title ||
+                `Zlecenie ${task.id}`;
+
+            const project =
+                task.project?.name ||
+                "";
+
+            const custom3 =
+                task.customFields?.custom3 ||
+                "";
+
+            // Szukamy miasta przede wszystkim w nazwie zlecenia/projekcie.
+            // Adres Firmao jest używany dopiero jako ostatnia możliwość.
+            const city =
+                extractCity(title) ||
+                extractCity(project) ||
+                extractCity(custom3) ||
+                extractCity(address) ||
+                "";
+
+            const coords =
+                city && CITY_COORDS[city]
+                    ? CITY_COORDS[city]
+                    : null;
+
             return {
 
                 id: task.id,
 
                 firmaoId: task.id,
 
-                title:
-                    task.name ||
-                    task.title ||
-                    `Zlecenie ${task.id}`,
+                title,
 
-                project:
-                    task.project?.name ||
-                    "",
+                project,
 
                 customer,
 
-                city: "",
+                city,
 
                 address: address,
 
-                lat: task.lat ?? null,
+                lat: coords ? coords[0] : null,
 
-                lng: task.lng ?? null,
+                lng: coords ? coords[1] : null,
 
                 status: statusLabel,
 

@@ -75,69 +75,24 @@ async function loadPage(page) {
 
         setTimeout(async () => {
 
-            // -----------------------------
-            // URUCHOM MAPĘ
-            // -----------------------------
-
-            if (
-                typeof initMap === "function"
-            ) {
-
+            // Utwórz mapę
+            if (typeof initMap === "function") {
                 initMap();
-
             }
 
-
-            // -----------------------------
-            // POBIERZ AKTUALNE ZLECENIA
-            // -----------------------------
-
-            let tasks = [];
-
-            if (
-                typeof getTasks === "function"
-            ) {
-
-                tasks =
-                    await getTasks(true);
-
-                window.currentTasks =
-                    tasks;
-
-            }
-
-
-            // -----------------------------
-            // UZUPEŁNIJ LISTĘ MIAST
-            // -----------------------------
-
-            if (
-                typeof initMapFilters === "function"
-            ) {
-
+            // Ustaw filtry
+            if (typeof initMapFilters === "function") {
                 await initMapFilters();
-
             }
 
-
-            // -----------------------------
-            // NARYSUJ ZLECENIA
-            // -----------------------------
-
-            if (
-                typeof drawTasks === "function"
-            ) {
-
-                drawTasks(tasks);
-
+            // Włącz ładowanie zleceń tylko z aktualnego
+            // obszaru mapy
+            if (typeof initMapViewportLoading === "function") {
+                initMapViewportLoading();
             }
 
-
-            // -----------------------------
-            // ZLECENIE WYBRANE Z WYSZUKIWARKI
-            // LUB KALENDARZA
-            // -----------------------------
-
+            // Jeżeli użytkownik wszedł na mapę z konkretnego
+            // zlecenia, pokaż je na mapie.
             if (
                 window.selectedTaskOnMap &&
                 typeof showTaskOnMap === "function"
@@ -146,18 +101,11 @@ async function loadPage(page) {
                 const selectedTask =
                     window.selectedTaskOnMap;
 
-                window.selectedTaskOnMap =
-                    null;
-
+                window.selectedTaskOnMap = null;
 
                 setTimeout(() => {
-
-                    showTaskOnMap(
-                        selectedTask
-                    );
-
+                    showTaskOnMap(selectedTask);
                 }, 500);
-
             }
 
         }, 150);

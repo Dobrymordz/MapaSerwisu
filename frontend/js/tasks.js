@@ -49,111 +49,58 @@ function getStatusIcon(status) {
     return createStatusIcon(status);
 }
 
-async function getTasks(forceRefresh = false) {
-
-    try {
-
-        const response = await fetch("/tasks");
-
-        if (!response.ok) {
-
-            throw new Error(
-                `HTTP ${response.status}`
-            );
-
-        }
-
-        const tasks = await response.json();
-
-        console.log(
-            "Pobrano zlecenia:",
-            tasks
-        );
-
-        return tasks;
-
-    } catch (error) {
-
-        console.error(
-            "Nie udało się pobrać zleceń:",
-            error
-        );
-
-        return [];
-
-    }
-
-}
-
-
 // =====================================
 // RYSOWANIE ZLECEŃ
 // =====================================
 
 function drawTasks(tasks) {
+    const taskList =
+        document.getElementById("taskList");
 
-    const taskList = document.getElementById("taskList");
+    const visibleTasks =
+        Array.isArray(tasks)
+            ? tasks
+            : [];
 
-    // =====================================
-    // LISTA ZLECEŃ
-    // =====================================
+    // Usuwamy stare markery.
+    for (const marker of markers.values()) {
+        if (map) {
+            map.removeLayer(marker);
+        }
+    }
+
+    markers.clear();
 
     if (taskList) {
         taskList.innerHTML = "";
     }
 
+    const statusColors = {
+        "Otwarte": "#22c55e",
+        "Aktualnie wykonywane": "#3b82f6",
+        "Oczekiwanie na części": "#f97316",
+        "Spauzowane": "#8b5cf6",
+        "Wystaw fakturę": "#eab308",
+        "Wykonaj ofertę": "#ef4444",
+        "Zamknięte": "#6b7280"
+    };
 
-    // =====================================
-    // ZBIERAMY ID AKTUALNYCH ZLECEŃ
-    // =====================================
-
-    const currentIds = new Set();
-
-
-    visibleTasks.forEach(task => {
-
-        const taskId = String(
-            task.firmaoTaskId ||
-            task.firmaoId ||
-            task.id
-        );
-
-        currentIds.add(taskId);
-
-
-        // =====================================
-        // KOLOR STATUSU
-        // =====================================
-
-        let statusColor = "#6b7280";
-
-        switch (task.status) {
-
-            case "Zaplanowane":
-                statusColor = "#22c55e";
-                break;
-
-            case "W trakcie":
-                statusColor = "#f59e0b";
-                break;
-
-            case "Awaria":
-                statusColor = "#ef4444";
-                break;
-
-        }
-
-
-        // =====================================
-        // KARTA ZLECENIA
-        // =====================================
-
-        if (taskList) {
-
+    /*
+     * Lista zleceń.
+     * Maksymalnie 100 elementów DOM,
+     * żeby lista również nie zamulała przeglądarki.
+     */
+    if (taskList) {
+        visibleTasks.slice(0, 100).forEach(task => {
             const card =
                 document.createElement("div");
 
             card.className = "task";
+
+            const statusColor =
+                statusColors[
+                    String(task.status || "").trim()
+                ] || "#6b7280";
 
             card.innerHTML = `
                 <div>
@@ -163,6 +110,10 @@ function drawTasks(tasks) {
 
                     <div class="task-customer">
                         ${task.customer || ""}
+                    </div>
+
+                    <div class="task-customer">
+                        ${task.city || ""}
                     </div>
                 </div>
 
@@ -179,16 +130,12 @@ function drawTasks(tasks) {
                 </span>
             `;
 
-            taskList.appendChild(card);
-
-
-            // =====================================
-            // KLIKNIĘCIE ZLECENIA
-            // =====================================
-
             card.addEventListener("click", () => {
-
-                showDetails(task);
+                if (
+                    typeof showDetails === "function"
+                ) {
+                    showDetails(task);
+                }
 
                 const lat = Number(task.lat);
                 const lng = Number(task.lng);
@@ -198,27 +145,41 @@ function drawTasks(tasks) {
                     Number.isFinite(lat) &&
                     Number.isFinite(lng)
                 ) {
-
                     map.stop();
 
                     map.setView(
                         [lat, lng],
-                        14,
+                        Math.max(map.getZoom(), 14),
                         {
                             animate: false
                         }
                     );
                 }
-
             });
 
+            taskList.appendChild(card);
+        });
+
+        if (visibleTasks.length > 100) {
+            const more =
+                document.createElement("div");
+
+            more.style.padding = "12px";
+            more.style.textAlign = "center";
+            more.style.opacity = "0.7";
+
+            more.textContent =
+                `Pokazano 100 z ${visibleTasks.length} zleceń. Przybliż mapę, aby zawęzić obszar.`;
+
+            taskList.appendChild(more);
         }
+    }
 
-
-        // =====================================
-        // WSPÓŁRZĘDNE
-        // =====================================
-
+    /*
+     * KAŻDE ZLECENIE = OSOBNA PINEZKA.
+     * Bez klastrów i bez sumowania.
+     */
+    visibleTasks.forEach(task => {
         const lat = Number(task.lat);
         const lng = Number(task.lng);
 
@@ -230,57 +191,30 @@ function drawTasks(tasks) {
             return;
         }
 
+        const taskId = String(
+            task.firmaoTaskId ||
+            task.firmaoId ||
+            task.id
+        );
 
-        // =====================================
-        // ISTNIEJĄCY MARKER
-        // =====================================
+        const marker =
+            L.marker(
+                [lat, lng],
+                {
+                    icon:
+                        getStatusIcon(
+                            task.status
+                        )
+                }
+            ).addTo(map);
 
-        let marker = markers.get(taskId);
-
-        if (marker) {
-
-            marker.setLatLng([lat, lng]);
-
-            marker.setIcon(
-                getStatusIcon(task.status)
-            );
-
-        }
-
-
-        // =====================================
-        // NOWY MARKER
-        // =====================================
-
-        if (!marker) {
-
-            marker =
-                L.marker(
-                    [lat, lng],
-                    {
-                        icon:
-                            getStatusIcon(task.status)
-                    }
-                ).addTo(map);
-
-
-            // =====================================
-            // KLIK MARKERA
-            // =====================================
-
-            marker.on("click", () => {
+        marker.on("click", () => {
+            if (
+                typeof showDetails === "function"
+            ) {
                 showDetails(task);
-            });
-
-
-            markers.set(taskId, marker);
-
-        }
-
-
-        // =====================================
-        // POPUP
-        // =====================================
+            }
+        });
 
         const firmaoId =
             task.firmaoTaskId ||
@@ -290,7 +224,6 @@ function drawTasks(tasks) {
         let firmaoButton = "";
 
         if (firmaoId) {
-
             firmaoButton = `
                 <br>
                 <button
@@ -315,9 +248,7 @@ function drawTasks(tasks) {
                     📋 Otwórz zlecenie w Firmao
                 </button>
             `;
-
         }
-
 
         marker.bindPopup(`
             <b>${task.title || "Zlecenie"}</b><br>
@@ -327,101 +258,7 @@ function drawTasks(tasks) {
             ${firmaoButton}
         `);
 
+        markers.set(taskId, marker);
     });
-
-
-    // =====================================
-    // USUWAMY MARKERY, KTÓRYCH JUŻ NIE MA
-    // =====================================
-
-    for (const [id, marker] of markers.entries()) {
-
-        if (!currentIds.has(id)) {
-
-            if (map) {
-                map.removeLayer(marker);
-            }
-
-            markers.delete(id);
-        }
-    }
-
-
-    // =====================================
-    // NIE ROBIMY FITBOUNDS PRZY KAŻDYM SYNCU
-    // =====================================
-
 }
 
-
-// =====================================
-// SZCZEGÓŁY ZLECENIA
-// =====================================
-
-function showDetails(task) {
-
-    const detailsPanel =
-        document.getElementById(
-            "detailsPanel"
-        );
-
-    const detailsTitle =
-        document.getElementById(
-            "detailsTitle"
-        );
-
-    const detailsContent =
-        document.getElementById(
-            "detailsContent"
-        );
-
-
-    if (
-        !detailsPanel ||
-        !detailsTitle ||
-        !detailsContent
-    ) {
-
-        return;
-
-    }
-
-
-    detailsPanel.style.display =
-        "block";
-
-
-    detailsTitle.innerHTML =
-        task.title ||
-        task.customer ||
-        "Zlecenie";
-
-
-    detailsContent.innerHTML = `
-        <b>👤 Klient</b><br>
-        ${task.customer || "-"}<br><br>
-
-        <b>📍 Miasto</b><br>
-        ${task.city || "-"}<br><br>
-
-        <b>📍 Adres</b><br>
-        ${task.address || "-"}<br><br>
-
-        <b>📊 Status</b><br>
-        ${task.status || "-"}<br><br>
-
-        <b>👨‍🔧 Serwisant</b><br>
-        ${task.technician || "-"}<br><br>
-
-        <button
-            onclick="
-                window.open(
-                    'https://www.google.com/maps?q=${task.lat},${task.lng}'
-                )
-            "
-        >
-            🚗 Nawiguj
-        </button>
-    `;
-
-}
