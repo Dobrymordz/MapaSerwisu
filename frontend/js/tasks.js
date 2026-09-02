@@ -95,26 +95,6 @@ function drawTasks(tasks) {
     const taskList = document.getElementById("taskList");
 
     // =====================================
-    // FILTRUJEMY ZAMKNIĘTE
-    // =====================================
-
-    const visibleTasks = (Array.isArray(tasks) ? tasks : []).filter(task => {
-
-        const status =
-            String(task.status || "")
-                .trim()
-                .toLowerCase();
-
-        const statusKey =
-            String(task.statusKey || "")
-                .trim()
-                .toUpperCase();
-
-        return status !== "zamknięte" && statusKey !== "CLOSED";
-    });
-
-
-    // =====================================
     // LISTA ZLECEŃ
     // =====================================
 
@@ -261,13 +241,9 @@ function drawTasks(tasks) {
 
             marker.setLatLng([lat, lng]);
 
-            const icon =
-                icons[task.status] ||
-                icons["Zaplanowane"];
-
-            if (icon) {
-                marker.setIcon(icon);
-            }
+            marker.setIcon(
+                getStatusIcon(task.status)
+            );
 
         }
 
@@ -283,8 +259,7 @@ function drawTasks(tasks) {
                     [lat, lng],
                     {
                         icon:
-                            icons[task.status] ||
-                            icons["Zaplanowane"]
+                            getStatusIcon(task.status)
                     }
                 ).addTo(map);
 
