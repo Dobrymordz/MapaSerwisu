@@ -49,7 +49,7 @@ function getStatusIcon(status) {
     return createStatusIcon(status);
 }
 
-function getTasks(forceRefresh = false) {
+async function getTasks(forceRefresh = false) {
 
     try {
 
